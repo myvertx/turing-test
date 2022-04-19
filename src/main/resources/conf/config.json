@@ -1,0 +1,15 @@
+{
+  "main": {
+    "webInstances": 3,
+    "redisInstances": 3
+  },
+  "web": {
+    "port": 8888
+  },
+  "redis": {
+    "captchaTimeout": 60,
+    "connectionString": "redis://127.0.0.1:6379",
+    "maxPoolSize": 8,
+    "maxWaitingHandlers": 32
+  }
+}
