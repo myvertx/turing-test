@@ -58,6 +58,7 @@ public class RedisVerticle extends AbstractVerticle {
     }
 
     private void handleSetCaptcha(Message<RedisSetCaptchaTo> message) {
+        log.debug("handleSetCaptcha");
         RedisSetCaptchaTo to = message.body();
         redis.setex(REDIS_KEY_CAPTCHA_PREFIX + to.getCaptchaId(),
                         String.valueOf(redisProperties.getCaptchaTimeout()),
@@ -74,16 +75,21 @@ public class RedisVerticle extends AbstractVerticle {
     }
 
     private void handleGetCaptcha(Message<RedisGetCaptchaTo> message) {
+        log.debug("handleGetCaptcha");
         RedisGetCaptchaTo to = message.body();
         redis.getdel(REDIS_KEY_CAPTCHA_PREFIX + to.getCaptchaId())
                 .onSuccess(value -> {
+                    if (value == null) {
+                        message.reply(Ro.newWarn("查不到此ID的验证码"));
+                        return;
+                    }
                     Map<String, Object> map = Json.decodeValue(value.toBuffer(), Map.class);
                     message.reply(Ro.newSuccess(new RedisGetCaptchaRa(map)));
                 })
                 .onFailure(handle -> {
                     String msg = "Redis获取Captcha异常";
-                    log.error(msg, handle.getCause());
-                    message.reply(Ro.newFail(msg, handle.getCause().toString()));
+                    log.error(msg, handle);
+                    message.reply(Ro.newFail(msg, handle.toString()));
                 });
     }
 

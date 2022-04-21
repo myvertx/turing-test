@@ -20,6 +20,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,110 @@ public class WebVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
+        initCaptchaGenerator();
+
+        loadCaptchaResource();
+
+        WebProperties webProperties = config().mapTo(WebProperties.class);
+
+        Router router = Router.router(vertx);
+
+        // CORS
+        router.route().handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET));
+
+        // 生成并获取验证码图像
+        router.get("/captcha/gen").handler(this::handleCaptchaGen);
+
+        // 校验验证码
+        router.post("/captcha/verify").handler(BodyHandler.create()).handler(this::handleCaptchaVerify);
+
+        vertx.createHttpServer().requestHandler(router).listen(webProperties.getPort(), res -> {
+            if (res.succeeded()) {
+                log.info("HTTP server started on port " + res.result().actualPort());
+                startPromise.complete();
+            } else {
+                log.error("HTTP server start fail", res.cause());
+                startPromise.fail(res.cause());
+            }
+        });
+    }
+
+    /**
+     * 处理验证码生成
+     *
+     * @param ctx 路由上下文
+     */
+    private void handleCaptchaGen(RoutingContext ctx) {
+        log.debug("handleCaptchaGen");
+        // 生成滑块图片
+        SliderCaptchaInfo slideImageInfo = sliderCaptchaGenerator.generateSlideImageInfo();
+
+        String captchaId = NanoIdUtils.randomNanoId();
+        // 这个map数据应该存到缓存中，校验的时候需要用到该数据
+        Map<String, Object> map = sliderCaptchaValidator.generateSliderCaptchaValidData(slideImageInfo);
+
+        vertx.eventBus().request(RedisVerticle.EVENT_BUS_REDIS_SET_CAPTCHA, new RedisSetCaptchaTo(captchaId, map), res -> {
+            if (res.succeeded()) {
+                ctx.response().end(Json.encode(
+                        Ro.newSuccess("获取验证码成功",
+                                new GenCaptchaRa(
+                                        captchaId,
+                                        slideImageInfo.getBackgroundImage(),
+                                        slideImageInfo.getSliderImage()))));
+
+            } else {
+                String msg = "获取验证码失败";
+                log.error(msg, res.cause());
+                ctx.response().end(Json.encode(Ro.newFail(msg, res.cause().toString())));
+            }
+        });
+    }
+
+    /**
+     * 处理验证码校验
+     *
+     * @param ctx 路由上下文
+     */
+    private void handleCaptchaVerify(RoutingContext ctx) {
+        log.debug("handleCaptchaVerify");
+        String captchaId = ctx.request().getParam("id");
+        SliderCaptchaTrack sliderCaptchaTrack = ctx.getBodyAsJson().mapTo(SliderCaptchaTrack.class);
+        if (sliderCaptchaTrack.getTrackList() == null || sliderCaptchaTrack.getTrackList().isEmpty()) {
+            Ro<?> ro = Ro.newWarn("校验验证码失败");
+            String roStr = Json.encode(ro);
+            ctx.response().end(roStr);
+            return;
+        }
+
+        vertx.eventBus().<Ro<?>>request(RedisVerticle.EVENT_BUS_REDIS_GET_CAPTCHA, new RedisGetCaptchaTo(captchaId), res -> {
+            Ro<?> ro;
+            if (res.succeeded()) {
+                Ro<?> redisGetCaptchaRo = res.result().body();
+                if (redisGetCaptchaRo.isSuccess()) {
+                    Map<String, Object> map = ((Ro<RedisGetCaptchaRa>) redisGetCaptchaRo).getExtra().getMap();
+
+                    // 用户传来的行为轨迹和进行校验
+                    // - sliderCaptchaTrack为前端传来的滑动轨迹数据
+                    // - map 为生成验证码时缓存的map数据
+                    boolean check = sliderCaptchaValidator.valid(sliderCaptchaTrack, map);
+
+                    ro = check ? Ro.newSuccess("校验验证码成功") : Ro.newWarn("校验验证码失败");
+                } else {
+                    ro = Ro.newFail("校验验证码失败", redisGetCaptchaRo.getMsg());
+                }
+            } else {
+                ro = Ro.newFail("校验验证码失败", "调用Redis异常");
+            }
+            String roStr = Json.encode(ro);
+            ctx.response().end(roStr);
+        });
+    }
+
+
+    /**
+     * 初始化Captcha生成器
+     */
+    private void initCaptchaGenerator() {
         // 使用 CacheSliderCaptchaTemplate 对滑块验证码进行缓存，使其提前生成滑块图片
         // 参数一: 真正实现 滑块的 SliderCaptchaTemplate
         // 参数二: 默认提前缓存多少个
@@ -63,89 +168,13 @@ public class WebVerticle extends AbstractVerticle {
                         .build(),
                 10, 1000, 100);
         cacheSliderCaptchaGenerator.initSchedule();
-
         sliderCaptchaGenerator = cacheSliderCaptchaGenerator;
-
-        loadResource();
-
-        WebProperties webProperties = config().mapTo(WebProperties.class);
-
-        Router router = Router.router(vertx);
-
-        // CORS
-        router.route().handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET));
-
-        // 生成并获取验证码图像
-        router.get("/captcha/gen").handler(ctx -> {
-            // 生成滑块图片
-            SliderCaptchaInfo slideImageInfo = sliderCaptchaGenerator.generateSlideImageInfo();
-
-            String captchaId = NanoIdUtils.randomNanoId();
-            // 这个map数据应该存到缓存中，校验的时候需要用到该数据
-            Map<String, Object> map = sliderCaptchaValidator.generateSliderCaptchaValidData(slideImageInfo);
-
-            vertx.eventBus().request(RedisVerticle.EVENT_BUS_REDIS_SET_CAPTCHA, new RedisSetCaptchaTo(captchaId, map), res -> {
-                if (res.succeeded()) {
-                    ctx.response().putHeader("content-type", "application/json").end(Json.encode(Ro.newSuccess("获取验证码成功", new GenCaptchaRa(captchaId, slideImageInfo.getBackgroundImage(), slideImageInfo.getSliderImage()))));
-
-                } else {
-                    String msg = "获取验证码失败";
-                    log.error(msg, res.cause());
-                    ctx.response().putHeader("content-type", "application/json").end(Json.encode(Ro.newFail(msg, res.cause().toString())));
-                }
-            });
-
-        });
-
-        // 校验验证码
-        router.post("/captcha/verify").handler(BodyHandler.create()).handler(ctx -> {
-            String captchaId = ctx.request().getParam("id");
-            SliderCaptchaTrack sliderCaptchaTrack = ctx.getBodyAsJson().mapTo(SliderCaptchaTrack.class);
-            if (sliderCaptchaTrack.getTrackList() == null || sliderCaptchaTrack.getTrackList().isEmpty()) {
-                Ro<?> ro = Ro.newWarn("校验验证码失败");
-                String roStr = Json.encode(ro);
-                ctx.response().putHeader("content-type", "application/json").end(roStr);
-            }
-
-            vertx.eventBus().<Ro<?>>request(RedisVerticle.EVENT_BUS_REDIS_GET_CAPTCHA, new RedisGetCaptchaTo(captchaId), res -> {
-                Ro<?> ro;
-                if (res.succeeded()) {
-                    Ro<?> redisGetCaptchaRo = res.result().body();
-                    if (redisGetCaptchaRo.isSuccess()) {
-                        Map<String, Object> map = ((Ro<RedisGetCaptchaRa>) redisGetCaptchaRo).getExtra().getMap();
-
-                        // 用户传来的行为轨迹和进行校验
-                        // - sliderCaptchaTrack为前端传来的滑动轨迹数据
-                        // - map 为生成验证码时缓存的map数据
-                        boolean check = sliderCaptchaValidator.valid(sliderCaptchaTrack, map);
-
-                        ro = check ? Ro.newSuccess("校验验证码成功") : Ro.newWarn("校验验证码失败");
-                    } else {
-                        ro = Ro.newFail("校验验证码失败", redisGetCaptchaRo.getDetail());
-                    }
-                } else {
-                    ro = Ro.newFail("校验验证码失败", "调用Redis异常");
-                }
-                String roStr = Json.encode(ro);
-                ctx.response().putHeader("content-type", "application/json").end(roStr);
-            });
-        });
-
-        vertx.createHttpServer().requestHandler(router).listen(webProperties.getPort(), res -> {
-            if (res.succeeded()) {
-                log.info("HTTP server started on port " + res.result().actualPort());
-                startPromise.complete();
-            } else {
-                log.error("HTTP server start fail", res.cause());
-                startPromise.fail(res.cause());
-            }
-        });
     }
 
     /**
-     * 加载资源
+     * 加载Captcha资源
      */
-    private void loadResource() {
+    private void loadCaptchaResource() {
         ResourceStore resourceStore = sliderCaptchaResourceManager.getResourceStore();
         // 清除内置的背景图片
         resourceStore.clearResources();
