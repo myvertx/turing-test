@@ -68,6 +68,11 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-redis-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-codegen</artifactId>
+            <classifier>processor</classifier>
+        </dependency>
 
         <dependency>
             <groupId>com.alibaba.nacos</groupId>
