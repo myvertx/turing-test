@@ -12,7 +12,7 @@ public class DicUtils {
      * 外面的Map是缓存所有字典类的集合，key为类名，value为字典类所有值的集合
      * 里面的Map是缓存该字典类所有值的集合，key为字典的code，value为字典的值
      */
-    private static Map<String, Map<Integer, Dic>> caches = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Integer, Dic>> caches = new ConcurrentHashMap<>();
 
     /**
      * 获取字典类的所有值的集合
