@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import turtest.dic.ResultDic;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -20,6 +21,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @JsonInclude(Include.NON_NULL)
 public class Ro<T> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
