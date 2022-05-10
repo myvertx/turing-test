@@ -1,4 +1,4 @@
-package turtest.config;
+package myvertx.turtest.config;
 
 import lombok.Data;
 

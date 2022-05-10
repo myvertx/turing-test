@@ -1,4 +1,4 @@
-package turtest.to;
+package myvertx.turtest.to;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

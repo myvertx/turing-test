@@ -1,4 +1,4 @@
-package turtest.dic;
+package myvertx.turtest.dic;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

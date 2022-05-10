@@ -1,4 +1,4 @@
-package turtest.ro;
+package myvertx.turtest.ro;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import turtest.dic.ResultDic;
+import myvertx.turtest.dic.ResultDic;
 
 import java.io.Serial;
 import java.io.Serializable;

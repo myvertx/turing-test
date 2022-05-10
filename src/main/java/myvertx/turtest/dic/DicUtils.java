@@ -1,4 +1,4 @@
-package turtest.dic;
+package myvertx.turtest.dic;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

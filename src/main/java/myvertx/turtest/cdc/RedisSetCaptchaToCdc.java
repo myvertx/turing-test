@@ -1,10 +1,10 @@
-package turtest.cdc;
+package myvertx.turtest.cdc;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import turtest.to.RedisSetCaptchaTo;
+import myvertx.turtest.to.RedisSetCaptchaTo;
 
 public class RedisSetCaptchaToCdc implements MessageCodec<RedisSetCaptchaTo, RedisSetCaptchaTo> {
     @Override

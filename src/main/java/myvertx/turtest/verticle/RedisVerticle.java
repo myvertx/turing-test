@@ -1,4 +1,4 @@
-package turtest.verticle;
+package myvertx.turtest.verticle;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
@@ -11,11 +11,11 @@ import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.RedisConnection;
 import io.vertx.redis.client.RedisOptions;
 import lombok.extern.slf4j.Slf4j;
-import turtest.config.RedisProperties;
-import turtest.ra.RedisGetCaptchaRa;
-import turtest.ro.Ro;
-import turtest.to.RedisGetCaptchaTo;
-import turtest.to.RedisSetCaptchaTo;
+import myvertx.turtest.config.RedisProperties;
+import myvertx.turtest.ra.RedisGetCaptchaRa;
+import myvertx.turtest.ro.Ro;
+import myvertx.turtest.to.RedisGetCaptchaTo;
+import myvertx.turtest.to.RedisSetCaptchaTo;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
