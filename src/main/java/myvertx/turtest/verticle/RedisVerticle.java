@@ -1,5 +1,8 @@
 package myvertx.turtest.verticle;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -13,37 +16,34 @@ import io.vertx.redis.client.RedisOptions;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.config.RedisProperties;
 import myvertx.turtest.ra.RedisGetCaptchaRa;
-import myvertx.turtest.ro.Ro;
 import myvertx.turtest.to.RedisGetCaptchaTo;
 import myvertx.turtest.to.RedisSetCaptchaTo;
-
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import rebue.wheel.api.ro.Ro;
 
 @Slf4j
 public class RedisVerticle extends AbstractVerticle {
 
-    public static final String EVENT_BUS_REDIS_GET_CAPTCHA = "turtest.captcha.redis.get-captcha";
-    public static final String EVENT_BUS_REDIS_SET_CAPTCHA = "turtest.captcha.redis.set-captcha";
+    public static final String  EVENT_BUS_REDIS_GET_CAPTCHA = "turtest.captcha.redis.get-captcha";
+    public static final String  EVENT_BUS_REDIS_SET_CAPTCHA = "turtest.captcha.redis.set-captcha";
     /**
      * Captcha的Key的前缀
      * 后面跟captchaId拼接成Key
      * Value为自动生成的State的值
      */
-    private static final String REDIS_KEY_CAPTCHA_PREFIX = "turtest.captcha::";
-    private static final int MAX_RECONNECT_RETRIES = 16;
+    private static final String REDIS_KEY_CAPTCHA_PREFIX    = "turtest.captcha::";
+    private static final int    MAX_RECONNECT_RETRIES       = 16;
 
-    private final AtomicBoolean CONNECTING = new AtomicBoolean();
+    private final AtomicBoolean CONNECTING                  = new AtomicBoolean();
 
-    private RedisProperties redisProperties;
-    private RedisOptions redisOptions;
-    private RedisConnection redisConn;
-    private RedisAPI redis;
+    private RedisProperties     redisProperties;
+    private RedisOptions        redisOptions;
+    private RedisConnection     redisConn;
+    private RedisAPI            redis;
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         redisProperties = config().mapTo(RedisProperties.class);
-        redisOptions = new RedisOptions(config());
+        redisOptions    = new RedisOptions(config());
 
         createRedisClient().onSuccess(conn -> {
             log.info("connect Redis success!");
@@ -59,44 +59,45 @@ public class RedisVerticle extends AbstractVerticle {
 
     private void handleSetCaptcha(Message<RedisSetCaptchaTo> message) {
         log.debug("handleSetCaptcha");
-        RedisSetCaptchaTo to = message.body();
+        final RedisSetCaptchaTo to = message.body();
         redis.setex(REDIS_KEY_CAPTCHA_PREFIX + to.getCaptchaId(),
-                        String.valueOf(redisProperties.getCaptchaTimeout()),
-                        Json.encode(to.getMap()))
+                String.valueOf(redisProperties.getCaptchaTimeout()),
+                Json.encode(to.getMap()))
                 .onSuccess(handle -> {
-                    message.reply(Ro.newSuccess("Redis设置Captcha成功"));
+                    message.reply(Ro.success("Redis设置Captcha成功"));
                 })
                 .onFailure(handle -> {
-                    String msg = "Redis设置Captcha失败";
+                    final String msg = "Redis设置Captcha失败";
                     log.error(msg, handle.getCause());
-                    message.reply(Ro.newFail(msg, handle.getCause().toString()));
+                    message.reply(Ro.fail(msg, handle.getCause().toString()));
                 });
 
     }
 
     private void handleGetCaptcha(Message<RedisGetCaptchaTo> message) {
         log.debug("handleGetCaptcha");
-        RedisGetCaptchaTo to = message.body();
+        final RedisGetCaptchaTo to = message.body();
         redis.getdel(REDIS_KEY_CAPTCHA_PREFIX + to.getCaptchaId())
                 .onSuccess(value -> {
                     if (value == null) {
-                        message.reply(Ro.newWarn("查不到此ID的验证码"));
+                        message.reply(Ro.warn("查不到此ID的验证码"));
                         return;
                     }
-                    Map<String, Object> map = Json.decodeValue(value.toBuffer(), Map.class);
-                    message.reply(Ro.newSuccess(new RedisGetCaptchaRa(map)));
+                    final Map<String, Object> map = Json.decodeValue(value.toBuffer(), Map.class);
+                    message.reply(Ro.success(new RedisGetCaptchaRa(map)));
                 })
                 .onFailure(handle -> {
-                    String msg = "Redis获取Captcha异常";
+                    final String msg = "Redis获取Captcha异常";
                     log.error(msg, handle);
-                    message.reply(Ro.newFail(msg, handle.toString()));
+                    message.reply(Ro.fail(msg, handle.toString()));
                 });
     }
 
     private void handleSetCaptchaCompletion(AsyncResult<Void> res) {
         if (res.succeeded()) {
             log.info("Event Bus register success: RedisSetCaptcha");
-        } else {
+        }
+        else {
             log.error("Event Bus register fail: RedisSetCaptcha", res.cause());
         }
     }
@@ -104,18 +105,18 @@ public class RedisVerticle extends AbstractVerticle {
     private void handleGetCaptchaCompletion(AsyncResult<Void> res) {
         if (res.succeeded()) {
             log.info("Event Bus register success: RedisGetCaptcha");
-        } else {
+        }
+        else {
             log.error("Event Bus register fail: RedisGetCaptcha", res.cause());
         }
     }
-
 
     /**
      * Will create a redis client and setup a reconnect handler when there is
      * an exception in the connection.
      */
     private Future<RedisConnection> createRedisClient() {
-        Promise<RedisConnection> promise = Promise.promise();
+        final Promise<RedisConnection> promise = Promise.promise();
 
         if (CONNECTING.compareAndSet(false, true)) {
             Redis.createClient(vertx, redisOptions)
@@ -143,7 +144,8 @@ public class RedisVerticle extends AbstractVerticle {
                         promise.fail(t);
                         CONNECTING.set(false);
                     });
-        } else {
+        }
+        else {
             promise.complete();
         }
 
@@ -157,9 +159,10 @@ public class RedisVerticle extends AbstractVerticle {
         if (retry > MAX_RECONNECT_RETRIES) {
             // we should stop now, as there's nothing we can do.
             CONNECTING.set(false);
-        } else {
+        }
+        else {
             // retry with backoff up to 10240 ms
-            long backoff = (long) (Math.pow(2, Math.min(retry, 10)) * 10);
+            final long backoff = (long) (Math.pow(2, Math.min(retry, 10)) * 10);
 
             vertx.setTimer(backoff, timer -> {
                 createRedisClient()

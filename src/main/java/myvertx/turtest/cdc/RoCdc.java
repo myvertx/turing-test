@@ -4,15 +4,15 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import myvertx.turtest.ro.Ro;
+import rebue.wheel.api.ro.Ro;
 
 public class RoCdc implements MessageCodec<Ro, Ro> {
     @Override
     public void encodeToWire(Buffer buffer, Ro ro) {
         // Encode object to string
-        String jsonToStr = Json.encode(ro);
+        final String jsonToStr = Json.encode(ro);
         // Length of JSON: is NOT characters count
-        int length = jsonToStr.getBytes().length;
+        final int    length    = jsonToStr.getBytes().length;
 
         // Write data into given buffer
         buffer.appendInt(length);
@@ -25,12 +25,12 @@ public class RoCdc implements MessageCodec<Ro, Ro> {
         int _pos = position;
 
         // Length of JSON
-        int length = buffer.getInt(_pos);
+        final int length = buffer.getInt(_pos);
 
         // Get JSON string by it`s length
         // Jump 4 because getInt() == 4 bytes
-        String jsonStr = buffer.getString(_pos += 4, _pos += length);
-        JsonObject contentJson = new JsonObject(jsonStr);
+        final String     jsonStr     = buffer.getString(_pos += 4, _pos += length);
+        final JsonObject contentJson = new JsonObject(jsonStr);
 
         // We can finally create custom message object
         return contentJson.mapTo(Ro.class);
