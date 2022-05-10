@@ -1,6 +1,7 @@
 package myvertx.turtest.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.Data;
 
 @Data
