@@ -1,5 +1,8 @@
 package myvertx.turtest.verticle;
 
+import static io.vertx.ext.web.validation.builder.Bodies.json;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.eventbus.Message;
@@ -17,15 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.api.CaptchaApi;
 import myvertx.turtest.config.WebProperties;
 
-import static io.vertx.ext.web.validation.builder.Bodies.json;
-import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
-
 @Slf4j
 public class WebVerticle extends AbstractVerticle {
     public static final String EVENT_BUS_WEB_START = "myvertx.turtest.verticle.web.start";
 
-    private WebProperties webProperties;
-    private HttpServer httpServer;
+    private WebProperties      webProperties;
+    private HttpServer         httpServer;
 
     @Override
     public void start() {
@@ -35,9 +35,11 @@ public class WebVerticle extends AbstractVerticle {
         final Router router = Router.router(vertx);
         // CORS
         router.route().handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET));
+
         log.info("创建Schema解析器");
         final SchemaParser schemaParser = SchemaParser.createDraft7SchemaParser(
                 SchemaRouter.create(vertx, new SchemaRouterOptions()));
+
         log.info("配置路由");
         // 生成并获取验证码图像
         router.get("/captcha/gen")
@@ -68,7 +70,8 @@ public class WebVerticle extends AbstractVerticle {
         httpServer.listen(webProperties.getPort(), res -> {
             if (res.succeeded()) {
                 log.info("HTTP server started on port " + res.result().actualPort());
-            } else {
+            }
+            else {
                 log.error("HTTP server start fail", res.cause());
             }
         });
@@ -77,7 +80,8 @@ public class WebVerticle extends AbstractVerticle {
     private void handleStartCompletion(final AsyncResult<Void> res) {
         if (res.succeeded()) {
             log.info("Event Bus register success: web.start");
-        } else {
+        }
+        else {
             log.error("Event Bus register fail: web.start", res.cause());
         }
     }
