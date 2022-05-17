@@ -1,5 +1,10 @@
 package myvertx.turtest.svc.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
+
 import cloud.tianai.captcha.template.slider.generator.SliderCaptchaGenerator;
 import cloud.tianai.captcha.template.slider.generator.common.constant.SliderCaptchaConstant;
 import cloud.tianai.captcha.template.slider.generator.common.model.dto.GenerateParam;
@@ -14,7 +19,6 @@ import cloud.tianai.captcha.template.slider.resource.impl.provider.ClassPathReso
 import cloud.tianai.captcha.template.slider.validator.SliderCaptchaValidator;
 import cloud.tianai.captcha.template.slider.validator.common.model.dto.SliderCaptchaTrack;
 import cloud.tianai.captcha.template.slider.validator.impl.BasicCaptchaTrackValidator;
-import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import io.vertx.core.Future;
 import io.vertx.serviceproxy.ServiceException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +26,9 @@ import myvertx.turtest.clone.MapStructRegister;
 import myvertx.turtest.ra.CaptchaGenRa;
 import myvertx.turtest.svc.CaptchaRedisSvc;
 import myvertx.turtest.svc.CaptchaSvc;
-import myvertx.turtest.to.CaptchaVerifyTo;
 import myvertx.turtest.to.CaptchaRedisSetTo;
+import myvertx.turtest.to.CaptchaVerifyTo;
 import rebue.wheel.api.err.ErrCode;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 public class CaptchaSvcImpl implements CaptchaSvc {
@@ -35,10 +36,10 @@ public class CaptchaSvcImpl implements CaptchaSvc {
     private final SliderCaptchaResourceManager sliderCaptchaResourceManager = new DefaultSliderCaptchaResourceManager();
     // 负责计算一些数据存到缓存中，用于校验使用
     // SliderCaptchaValidator负责校验用户滑动滑块是否正确和生成滑块的一些校验数据; 比如滑块到凹槽的百分比值
-    private final SliderCaptchaValidator sliderCaptchaValidator = new BasicCaptchaTrackValidator();
-    private SliderCaptchaGenerator sliderCaptchaGenerator;
+    private final SliderCaptchaValidator       sliderCaptchaValidator       = new BasicCaptchaTrackValidator();
+    private SliderCaptchaGenerator             sliderCaptchaGenerator;
 
-    private final CaptchaRedisSvc captchaRedisSvc;
+    private final CaptchaRedisSvc              captchaRedisSvc;
 
     public CaptchaSvcImpl(final CaptchaRedisSvc captchaRedisSvc) {
         this.captchaRedisSvc = captchaRedisSvc;
@@ -58,7 +59,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         // 参数三: 出错后 等待xx时间再进行生成
         // 参数四: 检查时间间隔
         final CacheSliderCaptchaGenerator cacheSliderCaptchaGenerator = new CacheSliderCaptchaGenerator(
-                new StandardSliderCaptchaGenerator(sliderCaptchaResourceManager, true),
+                new StandardSliderCaptchaGenerator(this.sliderCaptchaResourceManager, true),
                 GenerateParam.builder()
                         .sliderFormatName("webp")
                         .backgroundFormatName("webp")
@@ -67,14 +68,14 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                         .build(),
                 10, 1000, 100);
         cacheSliderCaptchaGenerator.initSchedule();
-        sliderCaptchaGenerator = cacheSliderCaptchaGenerator;
+        this.sliderCaptchaGenerator = cacheSliderCaptchaGenerator;
     }
 
     /**
      * 加载Captcha资源
      */
     private void loadCaptchaResource() {
-        final ResourceStore resourceStore = sliderCaptchaResourceManager.getResourceStore();
+        final ResourceStore resourceStore = this.sliderCaptchaResourceManager.getResourceStore();
         // 清除内置的背景图片
         resourceStore.clearResources();
         // 添加自定义背景图片
@@ -121,15 +122,15 @@ public class CaptchaSvcImpl implements CaptchaSvc {
      */
     @Override
     public Future<CaptchaGenRa> gen() {
-        log.debug("handleCaptchaGen");
+        log.debug("captcha gen");
         // 生成滑块图片
-        final SliderCaptchaInfo slideImageInfo = sliderCaptchaGenerator.generateSlideImageInfo();
+        final SliderCaptchaInfo   slideImageInfo = this.sliderCaptchaGenerator.generateSlideImageInfo();
 
-        final String captchaId = NanoIdUtils.randomNanoId();
+        final String              captchaId      = NanoIdUtils.randomNanoId();
         // 这个map数据应该存到缓存中，校验的时候需要用到该数据
-        final Map<String, Object> map = sliderCaptchaValidator.generateSliderCaptchaValidData(slideImageInfo);
+        final Map<String, Object> map            = this.sliderCaptchaValidator.generateSliderCaptchaValidData(slideImageInfo);
 
-        return captchaRedisSvc.setCaptcha(new CaptchaRedisSetTo(captchaId, map))
+        return this.captchaRedisSvc.setCaptcha(new CaptchaRedisSetTo(captchaId, map))
                 .compose(res -> {
                     log.debug("redis.getCaptcha result: {}", res);
                     return Future.succeededFuture(CaptchaGenRa.builder()
@@ -149,13 +150,13 @@ public class CaptchaSvcImpl implements CaptchaSvc {
      */
     @Override
     public Future<Boolean> verify(final CaptchaVerifyTo to) {
-        log.debug("verify: {}", to);
+        log.debug("captcha verify: {}", to);
         if (to.getTrackList() == null || to.getTrackList().isEmpty()) {
             final String msg = "校验验证码参数错误";
             return Future.failedFuture(new ServiceException(ErrCode.ILLEGAL_ARGUMENT, msg));
         }
 
-        return captchaRedisSvc.getCaptcha(to.getCaptchaId())
+        return this.captchaRedisSvc.getCaptcha(to.getCaptchaId())
                 .compose(ra -> {
                     if (ra == null) {
                         return Future.succeededFuture(false);
@@ -166,8 +167,8 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                     // 用户传来的行为轨迹和进行校验
                     // - sliderCaptchaTrack为前端传来的滑动轨迹数据
                     // - map 为生成验证码时缓存的map数据
-                    SliderCaptchaTrack sliderCaptchaTrack = MapStructRegister.INSTANCE.toSliderCaptchaTrack(to);
-                    final boolean check = sliderCaptchaValidator.valid(sliderCaptchaTrack, map);
+                    final SliderCaptchaTrack sliderCaptchaTrack = MapStructRegister.INSTANCE.toSliderCaptchaTrack(to);
+                    final boolean    check              = this.sliderCaptchaValidator.valid(sliderCaptchaTrack, map);
                     return Future.succeededFuture(check);
                 })
                 .recover(Future::failedFuture);

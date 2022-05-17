@@ -37,8 +37,6 @@ public class WebVerticle extends AbstractVerticle {
         final Router router      = Router.router(this.vertx);
         // 全局route
         final Route  globalRoute = router.route();
-        // 全局记录日志
-        globalRoute.handler(LoggerHandler.create());
         // 记录日志
         if (this.webProperties.getIsLogging()) {
             log.info("开启日志记录");

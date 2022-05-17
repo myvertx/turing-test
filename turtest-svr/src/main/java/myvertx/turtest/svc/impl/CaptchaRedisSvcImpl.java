@@ -1,5 +1,7 @@
 package myvertx.turtest.svc.impl;
 
+import java.util.Map;
+
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.redis.client.RedisAPI;
@@ -8,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.ra.CaptchaRedisGetRa;
 import myvertx.turtest.svc.CaptchaRedisSvc;
 import myvertx.turtest.to.CaptchaRedisSetTo;
-
-import java.util.Map;
 
 @Slf4j
 public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
@@ -21,19 +21,19 @@ public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
      */
     private static final String REDIS_KEY_CAPTCHA_PREFIX = "myvertx.turtest.captcha::";
 
-    private final RedisAPI redis;
+    private final RedisAPI      redis;
 
-    private final Long captchaTimeout;
+    private final Long          captchaTimeout;
 
     public CaptchaRedisSvcImpl(final RedisAPI redis, final Long captchaTimeout) {
-        this.redis = redis;
+        this.redis          = redis;
         this.captchaTimeout = captchaTimeout;
     }
 
     @Override
     public Future<CaptchaRedisGetRa> getCaptcha(final String captchaId) {
-        log.debug("redis.getCaptcha: captchaId-{}", captchaId);
-        return redis.getdel(REDIS_KEY_CAPTCHA_PREFIX + captchaId)
+        log.debug("redis.getCaptcha params: captchaId-{}", captchaId);
+        return this.redis.getdel(REDIS_KEY_CAPTCHA_PREFIX + captchaId)
                 .compose(res -> {
                     log.debug("redis.getCaptcha result: {}", res);
 
@@ -42,7 +42,8 @@ public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
                         return Future.succeededFuture();
                     }
 
-                    @SuppressWarnings("unchecked") final Map<String, Object> map = Json.decodeValue(res.toBuffer(), Map.class);
+                    @SuppressWarnings("unchecked")
+                    final Map<String, Object> map = Json.decodeValue(res.toBuffer(), Map.class);
                     return Future.succeededFuture(new CaptchaRedisGetRa(map));
                 }).recover(err -> {
                     final String msg = "获取缓存中的验证码失败";
@@ -54,8 +55,8 @@ public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
     @Override
     public Future<Response> setCaptcha(final CaptchaRedisSetTo to) {
         log.debug("redis.setCaptcha: to-{}", to);
-        return redis.setex(REDIS_KEY_CAPTCHA_PREFIX + to.getCaptchaId(),
-                captchaTimeout.toString(),
+        return this.redis.setex(REDIS_KEY_CAPTCHA_PREFIX + to.getCaptchaId(),
+                this.captchaTimeout.toString(),
                 Json.encode(to.getMap()));
     }
 
