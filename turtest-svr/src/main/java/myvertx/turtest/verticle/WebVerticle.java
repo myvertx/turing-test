@@ -8,10 +8,12 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
@@ -29,37 +31,43 @@ public class WebVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        webProperties = config().mapTo(WebProperties.class);
+        this.webProperties = config().mapTo(WebProperties.class);
 
         log.info("创建路由");
-        final Router router = Router.router(vertx);
+        final Router router      = Router.router(this.vertx);
+        // 全局route
+        final Route  globalRoute = router.route();
         // CORS
-        router.route().handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET));
+        if (this.webProperties.getIsCors()) {
+            log.info("启用CORS");
+            globalRoute.handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET));
+        }
 
         log.info("创建Schema解析器");
         final SchemaParser schemaParser = SchemaParser.createDraft7SchemaParser(
-                SchemaRouter.create(vertx, new SchemaRouterOptions()));
+                SchemaRouter.create(this.vertx, new SchemaRouterOptions()));
 
         log.info("配置路由");
         // 生成并获取验证码图像
         router.get("/captcha/gen")
                 .handler(RouteToEBServiceHandler.build(
-                        vertx.eventBus(),
+                        this.vertx.eventBus(),
                         CaptchaApi.ADDR,
                         "gen"));
         // 校验验证码
         router.post("/captcha/verify")
+                .handler(LoggerHandler.create())
                 .handler(BodyHandler.create())
                 .handler(ValidationHandlerBuilder.create(schemaParser)
                         .body(json(objectSchema())).build())
                 .handler(RouteToEBServiceHandler.build(
-                        vertx.eventBus(),
+                        this.vertx.eventBus(),
                         CaptchaApi.ADDR,
                         "verify"));
 
-        httpServer = vertx.createHttpServer().requestHandler(router);
+        this.httpServer = this.vertx.createHttpServer().requestHandler(router);
 
-        vertx.eventBus()
+        this.vertx.eventBus()
                 .consumer(EVENT_BUS_WEB_START, this::handleStart)
                 .completionHandler(this::handleStartCompletion);
 
@@ -67,11 +75,10 @@ public class WebVerticle extends AbstractVerticle {
     }
 
     private void handleStart(final Message<Void> message) {
-        httpServer.listen(webProperties.getPort(), res -> {
+        this.httpServer.listen(this.webProperties.getPort(), res -> {
             if (res.succeeded()) {
                 log.info("HTTP server started on port " + res.result().actualPort());
-            }
-            else {
+            } else {
                 log.error("HTTP server start fail", res.cause());
             }
         });
@@ -80,8 +87,7 @@ public class WebVerticle extends AbstractVerticle {
     private void handleStartCompletion(final AsyncResult<Void> res) {
         if (res.succeeded()) {
             log.info("Event Bus register success: web.start");
-        }
-        else {
+        } else {
             log.error("Event Bus register fail: web.start", res.cause());
         }
     }

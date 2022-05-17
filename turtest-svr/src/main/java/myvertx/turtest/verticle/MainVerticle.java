@@ -40,7 +40,7 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void start(final Promise<Void> startPromise)  {
+    public void start(final Promise<Void> startPromise) {
         final ConfigRetriever retriever = ConfigRetriever.create(vertx);
         retriever.getConfig(configRes -> {
             log.info("config result: {}", configRes.result());
@@ -66,12 +66,6 @@ public class MainVerticle extends AbstractVerticle {
             final CaptchaSvc      captchaSvc      = new CaptchaSvcImpl(captchaRedisSvc);
             final CaptchaApi      captchaApi      = new CaptchaApiImpl(
                     new CaptchaSvcVertxEBProxy(vertx, CaptchaSvc.ADDR));
-
-            // // 注册服务调用参数及返回值的解码器
-            // vertx.eventBus()
-            // .registerDefaultCodec(Ro.class, new RoCdc())
-            // .registerDefaultCodec(RedisSetCaptchaTo.class, new RedisSetCaptchaToCdc())
-            // .registerDefaultCodec(RedisGetCaptchaTo.class, new RedisGetCaptchaToCdc());
 
             log.info("注册服务");
             new ServiceBinder(vertx)
