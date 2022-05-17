@@ -5,8 +5,11 @@
 	"web": {
 		"instances": 3,
 		"config": {
-			"port": 8888,
-			"isLogging": true
+			"isLogging": true,
+			"options": {
+				"port": 8888,
+				"logActivity": true
+			}
 		}
 	},
 	"redis": {

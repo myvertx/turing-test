@@ -8,6 +8,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
@@ -32,6 +33,8 @@ public class WebVerticle extends AbstractVerticle {
     @Override
     public void start() {
         this.webProperties = config().mapTo(WebProperties.class);
+        this.webProperties.setOptions(config().getJsonObject("options"));
+        final HttpServerOptions httpServerOptions = this.webProperties.getOptions() == null ? new HttpServerOptions() : new HttpServerOptions(this.webProperties.getOptions());
 
         log.info("创建路由");
         final Router router      = Router.router(this.vertx);
@@ -69,7 +72,7 @@ public class WebVerticle extends AbstractVerticle {
                         CaptchaApi.ADDR,
                         "verify"));
 
-        this.httpServer = this.vertx.createHttpServer().requestHandler(router);
+        this.httpServer = this.vertx.createHttpServer(httpServerOptions).requestHandler(router);
 
         this.vertx.eventBus()
                 .consumer(EVENT_BUS_WEB_START, this::handleStart)
@@ -79,7 +82,7 @@ public class WebVerticle extends AbstractVerticle {
     }
 
     private void handleStart(final Message<Void> message) {
-        this.httpServer.listen(this.webProperties.getPort(), res -> {
+        this.httpServer.listen(res -> {
             if (res.succeeded()) {
                 log.info("HTTP server started on port " + res.result().actualPort());
             } else {
