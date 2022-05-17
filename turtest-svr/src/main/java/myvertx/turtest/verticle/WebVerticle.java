@@ -37,9 +37,16 @@ public class WebVerticle extends AbstractVerticle {
         final Router router      = Router.router(this.vertx);
         // 全局route
         final Route  globalRoute = router.route();
+        // 全局记录日志
+        globalRoute.handler(LoggerHandler.create());
+        // 记录日志
+        if (this.webProperties.getIsLogging()) {
+            log.info("开启日志记录");
+            globalRoute.handler(LoggerHandler.create());
+        }
         // CORS
         if (this.webProperties.getIsCors()) {
-            log.info("启用CORS");
+            log.info("开启CORS");
             globalRoute.handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET));
         }
 
@@ -56,7 +63,6 @@ public class WebVerticle extends AbstractVerticle {
                         "gen"));
         // 校验验证码
         router.post("/captcha/verify")
-                .handler(LoggerHandler.create())
                 .handler(BodyHandler.create())
                 .handler(ValidationHandlerBuilder.create(schemaParser)
                         .body(json(objectSchema())).build())

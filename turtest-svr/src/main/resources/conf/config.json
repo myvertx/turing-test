@@ -5,7 +5,8 @@
 	"web": {
 		"instances": 3,
 		"config": {
-			"port": 8888
+			"port": 8888,
+			"isLogging": true
 		}
 	},
 	"redis": {
