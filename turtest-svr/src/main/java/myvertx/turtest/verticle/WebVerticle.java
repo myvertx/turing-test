@@ -9,6 +9,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
@@ -33,8 +34,8 @@ public class WebVerticle extends AbstractVerticle {
     @Override
     public void start() {
         this.webProperties = config().mapTo(WebProperties.class);
-        this.webProperties.setOptions(config().getJsonObject("options"));
-        final HttpServerOptions httpServerOptions = this.webProperties.getOptions() == null ? new HttpServerOptions() : new HttpServerOptions(this.webProperties.getOptions());
+        final HttpServerOptions httpServerOptions = this.webProperties.getServerOptions() == null ? new HttpServerOptions()
+                : new HttpServerOptions(JsonObject.mapFrom(this.webProperties.getServerOptions()));
 
         log.info("创建路由");
         final Router router      = Router.router(this.vertx);
