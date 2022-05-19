@@ -5,7 +5,7 @@ import io.vertx.redis.client.Response;
 import myvertx.turtest.ra.CaptchaRedisGetRa;
 import myvertx.turtest.to.CaptchaRedisSetTo;
 
-public interface CaptchaRedisSvc {
+public interface RedisSvc {
 
     /**
      * 获取验证码

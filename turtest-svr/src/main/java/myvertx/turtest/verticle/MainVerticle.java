@@ -17,10 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.api.CaptchaApi;
 import myvertx.turtest.api.impl.CaptchaApiImpl;
 import myvertx.turtest.config.MainProperties;
-import myvertx.turtest.svc.CaptchaRedisSvc;
+import myvertx.turtest.svc.RedisSvc;
 import myvertx.turtest.svc.CaptchaSvc;
 import myvertx.turtest.svc.CaptchaSvcVertxEBProxy;
-import myvertx.turtest.svc.impl.CaptchaRedisSvcImpl;
+import myvertx.turtest.svc.impl.RedisSvcImpl;
 import myvertx.turtest.svc.impl.CaptchaSvcImpl;
 import rebue.wheel.vertx.util.RedisUtils;
 
@@ -60,7 +60,7 @@ public class MainVerticle extends AbstractVerticle {
             final MainProperties mainProperties = config.getJsonObject("main").mapTo(MainProperties.class);
 
             log.info("创建服务实例");
-            final CaptchaRedisSvc captchaRedisSvc = new CaptchaRedisSvcImpl(
+            final RedisSvc captchaRedisSvc = new RedisSvcImpl(
                     RedisUtils.createRedisClient(vertx, config),
                     mainProperties.getCaptchaTimeout());
             final CaptchaSvc      captchaSvc      = new CaptchaSvcImpl(captchaRedisSvc);

@@ -24,7 +24,7 @@ import io.vertx.serviceproxy.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.clone.MapStructRegister;
 import myvertx.turtest.ra.CaptchaGenRa;
-import myvertx.turtest.svc.CaptchaRedisSvc;
+import myvertx.turtest.svc.RedisSvc;
 import myvertx.turtest.svc.CaptchaSvc;
 import myvertx.turtest.to.CaptchaRedisSetTo;
 import myvertx.turtest.to.CaptchaVerifyTo;
@@ -39,9 +39,9 @@ public class CaptchaSvcImpl implements CaptchaSvc {
     private final SliderCaptchaValidator       sliderCaptchaValidator       = new BasicCaptchaTrackValidator();
     private SliderCaptchaGenerator             sliderCaptchaGenerator;
 
-    private final CaptchaRedisSvc              captchaRedisSvc;
+    private final RedisSvc              captchaRedisSvc;
 
-    public CaptchaSvcImpl(final CaptchaRedisSvc captchaRedisSvc) {
+    public CaptchaSvcImpl(final RedisSvc captchaRedisSvc) {
         this.captchaRedisSvc = captchaRedisSvc;
 
         initCaptchaGenerator();
