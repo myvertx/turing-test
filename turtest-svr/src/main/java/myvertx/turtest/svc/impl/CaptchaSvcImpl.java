@@ -172,7 +172,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                     final boolean    check              = this.sliderCaptchaValidator.valid(sliderCaptchaTrack, map);
                     return Future.succeededFuture(check ? Vro.success("验证成功") : Vro.warn("验证失败"));
                 })
-                .recover(err -> Future.succeededFuture(Vro.fail("验证失败", err.getMessage())));
+                .recover(err -> Future.succeededFuture(Vro.fail("校验验证码失败", err.getMessage())));
     }
 
 }
