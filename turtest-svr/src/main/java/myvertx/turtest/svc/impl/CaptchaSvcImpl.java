@@ -20,7 +20,6 @@ import cloud.tianai.captcha.template.slider.validator.SliderCaptchaValidator;
 import cloud.tianai.captcha.template.slider.validator.common.model.dto.SliderCaptchaTrack;
 import cloud.tianai.captcha.template.slider.validator.impl.BasicCaptchaTrackValidator;
 import io.vertx.core.Future;
-import io.vertx.serviceproxy.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.clone.MapStructRegister;
 import myvertx.turtest.ra.CaptchaGenRa;
@@ -28,7 +27,7 @@ import myvertx.turtest.svc.CaptchaRedisSvc;
 import myvertx.turtest.svc.CaptchaSvc;
 import myvertx.turtest.to.CaptchaRedisSetTo;
 import myvertx.turtest.to.CaptchaVerifyTo;
-import rebue.wheel.api.err.ErrCode;
+import rebue.wheel.vertx.ro.Vro;
 
 @Slf4j
 public class CaptchaSvcImpl implements CaptchaSvc {
@@ -121,7 +120,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
      * 生成验证码
      */
     @Override
-    public Future<CaptchaGenRa> gen() {
+    public Future<Vro> gen() {
         log.debug("captcha gen");
         // 生成滑块图片
         final SliderCaptchaInfo   slideImageInfo = this.sliderCaptchaGenerator.generateSlideImageInfo();
@@ -133,13 +132,15 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         return this.captchaRedisSvc.setCaptcha(new CaptchaRedisSetTo(captchaId, map))
                 .compose(res -> {
                     log.debug("redis.getCaptcha result: {}", res);
-                    return Future.succeededFuture(CaptchaGenRa.builder()
-                            .id(captchaId)
-                            .backgroundImage(slideImageInfo.getBackgroundImage())
-                            .sliderImage(slideImageInfo.getSliderImage())
-                            .build());
+                    return Future.succeededFuture(
+                            Vro.success("获取并生成验证码成功", CaptchaGenRa.builder()
+                                    .id(captchaId)
+                                    .backgroundImage(slideImageInfo.getBackgroundImage())
+                                    .sliderImage(slideImageInfo.getSliderImage())
+                                    .build()));
                 })
-                .recover(Future::failedFuture);
+                .recover(err -> Future.succeededFuture(
+                        Vro.fail("获取并生成验证码失败", err.getMessage())));
 
     }
 
@@ -149,17 +150,17 @@ public class CaptchaSvcImpl implements CaptchaSvc {
      * @param to 校验验证码的参数
      */
     @Override
-    public Future<Boolean> verify(final CaptchaVerifyTo to) {
+    public Future<Vro> verify(final CaptchaVerifyTo to) {
         log.debug("captcha verify: {}", to);
         if (to.getTrackList() == null || to.getTrackList().isEmpty()) {
             final String msg = "校验验证码参数错误";
-            return Future.failedFuture(new ServiceException(ErrCode.ILLEGAL_ARGUMENT, msg));
+            return Future.succeededFuture(Vro.warn(msg));
         }
 
         return this.captchaRedisSvc.getCaptcha(to.getCaptchaId())
                 .compose(ra -> {
                     if (ra == null) {
-                        return Future.succeededFuture(false);
+                        return Future.succeededFuture(Vro.warn("验证失败"));
                     }
 
                     final Map<String, Object> map = ra.getMap();
@@ -169,10 +170,9 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                     // - map 为生成验证码时缓存的map数据
                     final SliderCaptchaTrack sliderCaptchaTrack = MapStructRegister.INSTANCE.toSliderCaptchaTrack(to);
                     final boolean    check              = this.sliderCaptchaValidator.valid(sliderCaptchaTrack, map);
-                    return Future.succeededFuture(check);
+                    return Future.succeededFuture(check ? Vro.success("验证成功") : Vro.warn("验证失败"));
                 })
                 .recover(Future::failedFuture);
-
     }
 
 }

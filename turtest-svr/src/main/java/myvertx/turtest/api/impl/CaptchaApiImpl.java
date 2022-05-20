@@ -1,24 +1,22 @@
 package myvertx.turtest.api.impl;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.api.CaptchaApi;
 import myvertx.turtest.svc.CaptchaSvc;
-import myvertx.turtest.svc.CaptchaSvcVertxEBProxy;
 import myvertx.turtest.to.CaptchaVerifyTo;
-import rebue.wheel.api.ro.Ro;
+import rebue.wheel.api.ro.Rt;
 
 @Slf4j
 public class CaptchaApiImpl implements CaptchaApi {
 
     private final CaptchaSvc captchaSvc;
 
-    public CaptchaApiImpl(final Vertx vertx) {
-        this.captchaSvc = new CaptchaSvcVertxEBProxy(vertx, CaptchaSvc.ADDR);
+    public CaptchaApiImpl(final CaptchaSvc captchaSvc) {
+        this.captchaSvc = captchaSvc;
     }
 
     /**
@@ -27,13 +25,12 @@ public class CaptchaApiImpl implements CaptchaApi {
     @Override
     public Future<ServiceResponse> gen(final ServiceRequest request) {
         return this.captchaSvc.gen()
-                .compose(ra -> Future.succeededFuture(ServiceResponse.completedWithJson(JsonObject.mapFrom(
-                        Ro.success("生成验证码成功", ra)))))
+                .compose(ro -> Future.succeededFuture(ServiceResponse.completedWithJson(JsonObject.mapFrom(ro))))
                 .recover(err -> {
                     final String msg = "生成验证码失败";
                     log.error(msg, err);
                     return Future.succeededFuture(ServiceResponse.completedWithJson(JsonObject.mapFrom(
-                            Ro.fail(msg, err.getMessage()))));
+                            Rt.fail(msg, err.getMessage()))));
                 });
     }
 
@@ -46,13 +43,13 @@ public class CaptchaApiImpl implements CaptchaApi {
     @Override
     public Future<ServiceResponse> verify(final CaptchaVerifyTo body, final ServiceRequest request) {
         return this.captchaSvc.verify(body)
-                .compose(ra -> Future.succeededFuture(ServiceResponse.completedWithJson(JsonObject.mapFrom(
-                        ra ? Ro.success("校验验证码成功") : Ro.warn("校验验证码失败")))))
+                .compose(ro -> Future.succeededFuture(ServiceResponse.completedWithJson(JsonObject.mapFrom(
+                        ro))))
                 .recover(err -> {
                     final String msg = "校验验证码失败";
                     log.error(msg, err);
                     return Future.succeededFuture(ServiceResponse.completedWithJson(JsonObject.mapFrom(
-                            Ro.fail(msg, err.getMessage()))));
+                            Rt.fail(msg, err.getMessage()))));
                 });
     }
 

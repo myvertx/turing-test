@@ -1,5 +1,6 @@
 package myvertx.turtest.verticle;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -12,6 +13,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Verticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.redis.client.RedisAPI;
 import io.vertx.serviceproxy.ServiceBinder;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.api.CaptchaApi;
@@ -35,6 +37,7 @@ public class MainVerticle extends AbstractVerticle {
                 .enable(
                         MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES    // 忽略字段和属性的大小写
                 )
+                .setSerializationInclusion(Include.NON_NULL)
                 .registerModule(new JavaTimeModule());  // 支持Java8的LocalDate/LocalDateTime类型
     }
 
@@ -59,10 +62,10 @@ public class MainVerticle extends AbstractVerticle {
             final MainProperties mainProperties = config.getJsonObject("main").mapTo(MainProperties.class);
 
             log.info("创建服务实例");
-            final CaptchaRedisSvc captchaRedisSvc = new CaptchaRedisSvcImpl(
-                    RedisUtils.createRedisClient(this.vertx, config.getJsonObject("redis")), mainProperties.getCaptchaTimeout());
+            final RedisAPI        redisClient     = RedisUtils.createRedisClient(this.vertx, config.getJsonObject("redis"));
+            final CaptchaRedisSvc captchaRedisSvc = new CaptchaRedisSvcImpl(redisClient, mainProperties.getCaptchaTimeout());
             final CaptchaSvc      captchaSvc      = new CaptchaSvcImpl(captchaRedisSvc);
-            final CaptchaApi      captchaApi      = new CaptchaApiImpl(this.vertx);
+            final CaptchaApi      captchaApi      = new CaptchaApiImpl(captchaSvc);
 
             log.info("注册服务");
             new ServiceBinder(this.vertx)
