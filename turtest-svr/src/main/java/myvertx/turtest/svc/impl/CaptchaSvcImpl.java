@@ -154,7 +154,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         log.debug("captcha verify: {}", to);
         if (to.getTrackList() == null || to.getTrackList().isEmpty()) {
             final String msg = "校验验证码参数错误";
-            return Future.succeededFuture(Vro.warn(msg));
+            return Future.succeededFuture(Vro.illegalArgument(msg));
         }
 
         return this.captchaRedisSvc.getCaptcha(to.getCaptchaId())
@@ -172,7 +172,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                     final boolean    check              = this.sliderCaptchaValidator.valid(sliderCaptchaTrack, map);
                     return Future.succeededFuture(check ? Vro.success("验证成功") : Vro.warn("验证失败"));
                 })
-                .recover(Future::failedFuture);
+                .recover(err -> Future.succeededFuture(Vro.fail("验证失败", err.getMessage())));
     }
 
 }
