@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author zbz
  */
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
 @DataObject
