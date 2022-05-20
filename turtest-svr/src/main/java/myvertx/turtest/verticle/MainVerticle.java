@@ -61,8 +61,9 @@ public class MainVerticle extends AbstractVerticle {
             // 读取main的配置
             final MainProperties mainProperties = config.getJsonObject("main").mapTo(MainProperties.class);
 
+            log.info("创建redisClient");
+            final RedisAPI redisClient = RedisUtils.createRedisClient(this.vertx, config.getJsonObject("redis"));
             log.info("创建服务实例");
-            final RedisAPI        redisClient     = RedisUtils.createRedisClient(this.vertx, config.getJsonObject("redis"));
             final CaptchaRedisSvc captchaRedisSvc = new CaptchaRedisSvcImpl(redisClient, mainProperties.getCaptchaTimeout());
             final CaptchaSvc      captchaSvc      = new CaptchaSvcImpl(captchaRedisSvc);
             final CaptchaApi      captchaApi      = new CaptchaApiImpl(captchaSvc);
