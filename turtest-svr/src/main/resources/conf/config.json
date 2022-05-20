@@ -13,8 +13,10 @@
 		}
 	},
 	"redis": {
-		"connectionString": "redis://127.0.0.1:6379",
-		"maxPoolSize": 8,
-		"maxWaitingHandlers": 32
+		"config": {
+			"connectionString": "redis://127.0.0.1:6379",
+			"maxPoolSize": 8,
+			"maxWaitingHandlers": 32
+		}
 	}
 }

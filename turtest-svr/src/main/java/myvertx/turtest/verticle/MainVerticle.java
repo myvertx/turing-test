@@ -17,10 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.api.CaptchaApi;
 import myvertx.turtest.api.impl.CaptchaApiImpl;
 import myvertx.turtest.config.MainProperties;
-import myvertx.turtest.svc.RedisSvc;
+import myvertx.turtest.svc.CaptchaRedisSvc;
 import myvertx.turtest.svc.CaptchaSvc;
-import myvertx.turtest.svc.CaptchaSvcVertxEBProxy;
-import myvertx.turtest.svc.impl.RedisSvcImpl;
+import myvertx.turtest.svc.impl.CaptchaRedisSvcImpl;
 import myvertx.turtest.svc.impl.CaptchaSvcImpl;
 import rebue.wheel.vertx.util.RedisUtils;
 
@@ -41,7 +40,7 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(final Promise<Void> startPromise) {
-        final ConfigRetriever retriever = ConfigRetriever.create(vertx);
+        final ConfigRetriever retriever = ConfigRetriever.create(this.vertx);
         retriever.getConfig(configRes -> {
             log.info("config result: {}", configRes.result());
 
@@ -60,18 +59,16 @@ public class MainVerticle extends AbstractVerticle {
             final MainProperties mainProperties = config.getJsonObject("main").mapTo(MainProperties.class);
 
             log.info("创建服务实例");
-            final RedisSvc captchaRedisSvc = new RedisSvcImpl(
-                    RedisUtils.createRedisClient(vertx, config),
-                    mainProperties.getCaptchaTimeout());
+            final CaptchaRedisSvc captchaRedisSvc = new CaptchaRedisSvcImpl(
+                    RedisUtils.createRedisClient(this.vertx, config.getJsonObject("redis")), mainProperties.getCaptchaTimeout());
             final CaptchaSvc      captchaSvc      = new CaptchaSvcImpl(captchaRedisSvc);
-            final CaptchaApi      captchaApi      = new CaptchaApiImpl(
-                    new CaptchaSvcVertxEBProxy(vertx, CaptchaSvc.ADDR));
+            final CaptchaApi      captchaApi      = new CaptchaApiImpl(this.vertx);
 
             log.info("注册服务");
-            new ServiceBinder(vertx)
+            new ServiceBinder(this.vertx)
                     .setAddress(CaptchaSvc.ADDR)
                     .register(CaptchaSvc.class, captchaSvc);
-            new ServiceBinder(vertx)
+            new ServiceBinder(this.vertx)
                     .setAddress(CaptchaApi.ADDR)
                     .register(CaptchaApi.class, captchaApi);
 
@@ -82,14 +79,14 @@ public class MainVerticle extends AbstractVerticle {
             webVerticleFuture
                     .onSuccess(handle -> {
                         log.info("部署Verticle完成");
-                        vertx.eventBus().publish(WebVerticle.EVENT_BUS_WEB_START, null);
+                        this.vertx.eventBus().publish(WebVerticle.EVENT_BUS_WEB_START, null);
                         log.info("启动完成.");
                         startPromise.complete();
                     })
                     .onFailure(err -> {
                         log.error("启动失败.", err);
                         startPromise.fail(err);
-                        vertx.close();
+                        this.vertx.close();
                     });
         });
     }
@@ -104,7 +101,7 @@ public class MainVerticle extends AbstractVerticle {
      * @return Future
      */
     private Future<String> deployVerticle(final String verticleName, final Class<? extends Verticle> verticleClass, final JsonObject config) {
-        return vertx.deployVerticle(verticleClass,
+        return this.vertx.deployVerticle(verticleClass,
                 new DeploymentOptions(config.getJsonObject(verticleName)));
     }
 

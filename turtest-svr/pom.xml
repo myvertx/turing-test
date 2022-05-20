@@ -12,6 +12,7 @@
 		<launcher.class>io.vertx.core.Launcher</launcher.class>
 
 		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+		<vertx.version>4.3.0</vertx.version>
 		<mapstruct.version>1.4.2.Final</mapstruct.version>
 		<lombok.version>1.18.24</lombok.version>
 	</properties>
@@ -99,18 +100,34 @@
 				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
 					<annotationProcessorPaths>
-						<path>
+						<annotationProcessorPath>
+							<groupId>io.vertx</groupId>
+							<artifactId>vertx-codegen</artifactId>
+							<version>${vertx.version}</version>
+							<classifier>processor</classifier>
+						</annotationProcessorPath>
+						<annotationProcessorPath>
+							<groupId>io.vertx</groupId>
+							<artifactId>vertx-service-proxy</artifactId>
+							<version>${vertx.version}</version>
+						</annotationProcessorPath>
+						<annotationProcessorPath>
 							<groupId>org.mapstruct</groupId>
 							<artifactId>mapstruct-processor</artifactId>
 							<version>${mapstruct.version}</version>
-						</path>
-						<path>
+						</annotationProcessorPath>
+						<annotationProcessorPath>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 							<version>${lombok.version}</version>
-						</path>
+						</annotationProcessorPath>
 						<!-- other annotation processors -->
 					</annotationProcessorPaths>
+					<!--					<annotationProcessors>-->
+					<!--						<annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>-->
+					<!--						<annotationProcessor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor-->
+					<!--                        </annotationProcessor>-->
+					<!--					</annotationProcessors>-->
 				</configuration>
 			</plugin>
 

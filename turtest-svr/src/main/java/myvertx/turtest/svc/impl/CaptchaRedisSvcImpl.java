@@ -8,11 +8,11 @@ import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.Response;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.ra.CaptchaRedisGetRa;
-import myvertx.turtest.svc.RedisSvc;
+import myvertx.turtest.svc.CaptchaRedisSvc;
 import myvertx.turtest.to.CaptchaRedisSetTo;
 
 @Slf4j
-public class RedisSvcImpl implements RedisSvc {
+public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
 
     /**
      * Captcha的Key的前缀
@@ -25,7 +25,7 @@ public class RedisSvcImpl implements RedisSvc {
 
     private final Long          captchaTimeout;
 
-    public RedisSvcImpl(final RedisAPI redis, final Long captchaTimeout) {
+    public CaptchaRedisSvcImpl(final RedisAPI redis, final Long captchaTimeout) {
         this.redis          = redis;
         this.captchaTimeout = captchaTimeout;
     }
