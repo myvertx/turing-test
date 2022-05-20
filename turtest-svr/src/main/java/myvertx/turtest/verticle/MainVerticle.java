@@ -37,8 +37,8 @@ public class MainVerticle extends AbstractVerticle {
                 .enable(
                         MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES    // 忽略字段和属性的大小写
                 )
-                .setSerializationInclusion(Include.NON_NULL)
-                .registerModule(new JavaTimeModule());  // 支持Java8的LocalDate/LocalDateTime类型
+                .setSerializationInclusion(Include.NON_NULL)                // 不序列化值为null的字段
+                .registerModule(new JavaTimeModule());                      // 支持Java8的LocalDate/LocalDateTime类型
     }
 
     @Override
