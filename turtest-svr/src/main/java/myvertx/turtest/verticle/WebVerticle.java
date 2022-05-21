@@ -34,8 +34,8 @@ public class WebVerticle extends AbstractVerticle {
     @Override
     public void start() {
         this.webProperties = config().mapTo(WebProperties.class);
-        final HttpServerOptions httpServerOptions = this.webProperties.getServerOptions() == null ? new HttpServerOptions()
-                : new HttpServerOptions(JsonObject.mapFrom(this.webProperties.getServerOptions()));
+        final HttpServerOptions httpServerOptions = this.webProperties.getServer() == null ? new HttpServerOptions()
+                : new HttpServerOptions(JsonObject.mapFrom(this.webProperties.getServer()));
 
         log.info("创建路由");
         final Router router      = Router.router(this.vertx);
@@ -44,7 +44,7 @@ public class WebVerticle extends AbstractVerticle {
         // 记录日志
         if (this.webProperties.getIsLogging()) {
             log.info("开启日志记录");
-            globalRoute.handler(LoggerHandler.create());
+            globalRoute.handler(LoggerHandler.create(this.webProperties.getLoggerFormat()));
         }
         // CORS
         if (this.webProperties.getIsCors()) {
