@@ -7,7 +7,7 @@
 		"config": {
 			"isLogging": true,
 			"serverOptions": {
-				"port": 8888,
+				"port": 9000,
 				"logActivity": true
 			}
 		}
