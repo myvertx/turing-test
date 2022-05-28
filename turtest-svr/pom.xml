@@ -8,9 +8,6 @@
 	<artifactId>turtest-svr</artifactId>
 
 	<properties>
-		<main.verticle>myvertx.turtest.verticle.MainVerticle</main.verticle>
-		<launcher.class>io.vertx.core.Launcher</launcher.class>
-
 		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
 		<vertx.version>4.3.0</vertx.version>
 		<mapstruct.version>1.4.2.Final</mapstruct.version>
@@ -132,11 +129,6 @@
 						</annotationProcessorPath>
 						<!-- other annotation processors -->
 					</annotationProcessorPaths>
-					<!--					<annotationProcessors>-->
-					<!--						<annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>-->
-					<!--						<annotationProcessor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor-->
-					<!--                        </annotationProcessor>-->
-					<!--					</annotationProcessors>-->
 				</configuration>
 			</plugin>
 
