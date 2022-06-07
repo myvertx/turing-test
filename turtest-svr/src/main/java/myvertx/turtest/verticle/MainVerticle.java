@@ -83,7 +83,6 @@ public class MainVerticle extends AbstractVerticle {
             webVerticleFuture
                     .onSuccess(handle -> {
                         log.info("部署Verticle完成");
-                        this.vertx.eventBus().publish(WebVerticle.EVENT_BUS_WEB_START, null);
                         log.info("启动完成.");
                         startPromise.complete();
                     })
@@ -105,7 +104,7 @@ public class MainVerticle extends AbstractVerticle {
      * @return Future
      */
     private Future<String> deployVerticle(final String verticleName, final Class<? extends Verticle> verticleClass, final JsonObject config) {
-        return this.vertx.deployVerticle(verticleClass,
+        return this.vertx.deployVerticle("guice:" + verticleClass.getName(),
                 new DeploymentOptions(config.getJsonObject(verticleName)));
     }
 
