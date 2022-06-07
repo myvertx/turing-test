@@ -17,6 +17,7 @@ public interface CaptchaApi {
      * 生成验证码
      *
      * @param request 请求
+     *
      * @return 响应
      */
     Future<ServiceResponse> gen(ServiceRequest request);

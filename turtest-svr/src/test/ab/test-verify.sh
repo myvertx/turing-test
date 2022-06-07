@@ -6,4 +6,4 @@
 # -t    即timelimit，等待响应的最大时间(单位：秒)
 # -v 4  查看具体的请求和响应
 # -l    忽略返回长度不一致的问题
-ab -n 10000 -c 100 -k -r -s 999999999 -l -p "test-verify.json" -T "application/json" "http://127.0.0.1:8888/captcha/verify"
+ab -n 10000 -c 100 -k -r -s 999999999 -l -p "test-verify.json" -T "application/json" "http://127.0.0.1:9000/captcha/verify"

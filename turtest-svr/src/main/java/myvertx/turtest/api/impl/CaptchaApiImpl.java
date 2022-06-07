@@ -16,13 +16,14 @@ import rebue.wheel.api.ro.Rt;
 public class CaptchaApiImpl implements CaptchaApi {
 
     @Inject
-    CaptchaSvc captchaSvc;
+    private CaptchaSvc captchaSvc;
 
     /**
      * 生成验证码
      */
     @Override
     public Future<ServiceResponse> gen(final ServiceRequest request) {
+        log.debug("CaptchaApiImpl gen this.captchaSvc: {}", this.captchaSvc);
         return this.captchaSvc.gen()
                 .compose(ro -> Future.succeededFuture(ServiceResponse.completedWithJson(JsonObject.mapFrom(ro))))
                 .recover(err -> {

@@ -17,6 +17,13 @@ import myvertx.turtest.svc.impl.CaptchaSvcImpl;
 
 public class MainModule extends AbstractModule {
 
+    @Override
+    protected void configure() {
+        bind(CaptchaRedisSvc.class).to(CaptchaRedisSvcImpl.class).in(Singleton.class);
+        bind(CaptchaSvc.class).to(CaptchaSvcImpl.class).in(Singleton.class);
+        bind(CaptchaApi.class).to(CaptchaApiImpl.class).in(Singleton.class);
+    }
+
     @Singleton
     @Provides
     public MainProperties newMainProperties(@Named("config") final JsonObject config) {
@@ -25,20 +32,9 @@ public class MainModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public CaptchaRedisSvc getCaptchaRedisSvc(final MainProperties mainProperties) {
-        return new CaptchaRedisSvcImpl(mainProperties.getCaptchaTimeout());
-    }
-
-    @Singleton
-    @Provides
-    public CaptchaSvc getCaptchaSvc() {
-        return new CaptchaSvcImpl();
-    }
-
-    @Singleton
-    @Provides
-    public CaptchaApi getCaptchaApi() {
-        return new CaptchaApiImpl();
+    @Named("captchaTimeout")
+    public Long getCaptchaTimeout(final MainProperties mainProperties) {
+        return mainProperties.getCaptchaTimeout();
     }
 
 }
