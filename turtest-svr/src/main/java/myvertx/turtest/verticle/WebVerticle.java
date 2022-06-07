@@ -15,10 +15,11 @@ import myvertx.turtest.api.CaptchaApi;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
 
 @Slf4j
+@SuppressWarnings("deprecation")
 public class WebVerticle extends AbstractWebVerticle {
 
     @Override
-    protected void configRoute(final Router router) {
+    protected void configRouter(final Router router) {
         log.info("创建Schema解析器");
         final SchemaParser schemaParser = SchemaParser.createDraft7SchemaParser(
                 SchemaRouter.create(this.vertx, new SchemaRouterOptions()));

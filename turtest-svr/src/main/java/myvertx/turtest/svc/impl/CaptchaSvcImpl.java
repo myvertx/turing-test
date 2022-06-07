@@ -3,6 +3,8 @@ package myvertx.turtest.svc.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 
 import cloud.tianai.captcha.template.slider.generator.SliderCaptchaGenerator;
@@ -38,11 +40,10 @@ public class CaptchaSvcImpl implements CaptchaSvc {
     private final SliderCaptchaValidator       sliderCaptchaValidator       = new BasicCaptchaTrackValidator();
     private SliderCaptchaGenerator             sliderCaptchaGenerator;
 
-    private final CaptchaRedisSvc              captchaRedisSvc;
+    @Inject
+    CaptchaRedisSvc                            captchaRedisSvc;
 
-    public CaptchaSvcImpl(final CaptchaRedisSvc redisSvc) {
-        this.captchaRedisSvc = redisSvc;
-
+    public CaptchaSvcImpl() {
         initCaptchaGenerator();
 
         loadCaptchaResource();

@@ -1,5 +1,7 @@
 package myvertx.turtest.api.impl;
 
+import javax.inject.Inject;
+
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.service.ServiceRequest;
@@ -13,11 +15,8 @@ import rebue.wheel.api.ro.Rt;
 @Slf4j
 public class CaptchaApiImpl implements CaptchaApi {
 
-    private final CaptchaSvc captchaSvc;
-
-    public CaptchaApiImpl(final CaptchaSvc captchaSvc) {
-        this.captchaSvc = captchaSvc;
-    }
+    @Inject
+    CaptchaSvc captchaSvc;
 
     /**
      * 生成验证码

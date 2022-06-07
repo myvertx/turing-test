@@ -2,6 +2,8 @@ package myvertx.turtest.svc.impl;
 
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.redis.client.RedisAPI;
@@ -21,12 +23,12 @@ public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
      */
     private static final String REDIS_KEY_CAPTCHA_PREFIX = "myvertx.turtest.captcha::";
 
-    private final RedisAPI      redis;
+    @Inject
+    private RedisAPI            redis;
 
-    private final Long          captchaTimeout;
+    private Long                captchaTimeout;
 
-    public CaptchaRedisSvcImpl(final RedisAPI redis, final Long captchaTimeout) {
-        this.redis          = redis;
+    public CaptchaRedisSvcImpl(final Long captchaTimeout) {
         this.captchaTimeout = captchaTimeout;
     }
 
