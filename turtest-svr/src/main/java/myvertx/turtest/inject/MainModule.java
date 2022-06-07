@@ -26,7 +26,7 @@ public class MainModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public MainProperties newMainProperties(@Named("config") final JsonObject config) {
+    public MainProperties getMainProperties(@Named("config") final JsonObject config) {
         return config.getJsonObject("main").mapTo(MainProperties.class);
     }
 
