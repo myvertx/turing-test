@@ -1,6 +1,5 @@
 package myvertx.turtest.verticle;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +8,6 @@ import javax.inject.Inject;
 import com.google.inject.Module;
 
 import io.vertx.core.Verticle;
-import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceBinder;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.api.CaptchaApi;
@@ -26,14 +24,22 @@ public class MainVerticle extends AbstractMainVerticle {
     @Inject
     private CaptchaApi captchaApi;
 
+    /**
+     * 添加guice模块
+     *
+     * @param guiceModules 添加guice模块到此列表
+     */
     @Override
     protected void addGuiceModules(final List<Module> guiceModules) {
         guiceModules.add(new RedisGuiceModule());
         guiceModules.add(new MainModule());
     }
 
+    /**
+     * 部署前
+     */
     @Override
-    protected void beforeDeploy(final JsonObject config) {
+    protected void beforeDeploy() {
         log.info("注册服务");
         new ServiceBinder(this.vertx)
                 .setAddress(CaptchaSvc.ADDR)
@@ -44,13 +50,13 @@ public class MainVerticle extends AbstractMainVerticle {
     }
 
     /**
-     * 初始化要部署的Verticle类列表
+     * 添加要部署的Verticle类列表
+     *
+     * @param verticleClasses 添加Verticle类到此列表
      */
     @Override
-    protected Map<String, Class<? extends Verticle>> getVerticleClasses() {
-        final Map<String, Class<? extends Verticle>> result = new LinkedHashMap<>();
-        result.put("web", WebVerticle.class);
-        return result;
+    protected void addVerticleClasses(final Map<String, Class<? extends Verticle>> verticleClasses) {
+        verticleClasses.put("web", WebVerticle.class);
     }
 
 }
