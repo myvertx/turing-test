@@ -14,6 +14,7 @@ import myvertx.turtest.api.CaptchaApi;
 import myvertx.turtest.inject.MainModule;
 import myvertx.turtest.svc.CaptchaSvc;
 import rebue.wheel.vertx.guice.RedisGuiceModule;
+import rebue.wheel.vertx.guice.WebGuiceModule;
 import rebue.wheel.vertx.verticle.AbstractMainVerticle;
 
 @Slf4j
@@ -32,6 +33,7 @@ public class MainVerticle extends AbstractMainVerticle {
     @Override
     protected void addGuiceModules(final List<Module> guiceModules) {
         guiceModules.add(new RedisGuiceModule());
+        guiceModules.add(new WebGuiceModule());
         guiceModules.add(new MainModule());
     }
 
