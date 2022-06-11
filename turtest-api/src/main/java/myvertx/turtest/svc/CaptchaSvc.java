@@ -5,11 +5,12 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import myvertx.turtest.to.CaptchaVerifyTo;
 import rebue.wheel.vertx.ro.Vro;
+import rebue.wheel.vertx.util.EventBusUtils;
 
 @ProxyGen // 生成服务代理
 @VertxGen // 生成多语言客户端
 public interface CaptchaSvc {
-    String ADDR = "myvertx.turtest.svc.captcha-svc";
+    String ADDR = EventBusUtils.getAddr(CaptchaSvc.class);
 
     /**
      * 生成验证码

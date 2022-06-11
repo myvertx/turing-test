@@ -4,9 +4,10 @@ import io.vertx.core.Future;
 import io.vertx.redis.client.Response;
 import myvertx.turtest.ra.CaptchaRedisGetRa;
 import myvertx.turtest.to.CaptchaRedisSetTo;
+import rebue.wheel.vertx.util.EventBusUtils;
 
 public interface CaptchaRedisSvc {
-    String ADDR = "myvertx.turtest.svc.redis-svc";
+    String ADDR = EventBusUtils.getAddr(CaptchaRedisSvc.class);
 
     /**
      * 获取验证码
