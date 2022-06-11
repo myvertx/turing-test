@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
+import com.google.inject.Singleton;
 
 import cloud.tianai.captcha.template.slider.generator.SliderCaptchaGenerator;
 import cloud.tianai.captcha.template.slider.generator.common.constant.SliderCaptchaConstant;
@@ -32,6 +33,7 @@ import myvertx.turtest.to.CaptchaVerifyTo;
 import rebue.wheel.vertx.ro.Vro;
 
 @Slf4j
+@Singleton
 public class CaptchaSvcImpl implements CaptchaSvc {
     // 验证码资源管理器
     private final SliderCaptchaResourceManager sliderCaptchaResourceManager = new DefaultSliderCaptchaResourceManager();

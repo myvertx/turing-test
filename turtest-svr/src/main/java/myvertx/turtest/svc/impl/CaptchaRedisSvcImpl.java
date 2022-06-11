@@ -5,6 +5,8 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.google.inject.Singleton;
+
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.redis.client.RedisAPI;
@@ -15,6 +17,7 @@ import myvertx.turtest.svc.CaptchaRedisSvc;
 import myvertx.turtest.to.CaptchaRedisSetTo;
 
 @Slf4j
+@Singleton
 public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
 
     /**
