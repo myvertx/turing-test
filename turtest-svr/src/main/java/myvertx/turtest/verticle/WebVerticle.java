@@ -22,13 +22,13 @@ public class WebVerticle extends AbstractWebVerticle {
                 SchemaRouter.create(this.vertx, new SchemaRouterOptions()));
 
         // 生成并获取验证码图像
-        router.get("/captcha/gen")
+        router.get("/turtest/captcha/gen")
                 .handler(RouteToEBServiceHandler.build(
                         this.vertx.eventBus(),
                         CaptchaApi.ADDR,
                         "gen"));
         // 校验验证码
-        router.post("/captcha/verify")
+        router.post("/turtest/captcha/verify")
                 .handler(BodyHandler.create())
                 .handler(ValidationHandlerBuilder.create(schemaParser)
                         .body(json(objectSchema())).build())

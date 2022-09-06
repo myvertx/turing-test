@@ -24,6 +24,7 @@ import cloud.tianai.captcha.validator.impl.BasicCaptchaTrackValidator;
 import io.vertx.core.Future;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.turtest.clone.MapStructRegister;
+import myvertx.turtest.config.MainProperties;
 import myvertx.turtest.ra.CaptchaGenRa;
 import myvertx.turtest.svc.CaptchaRedisSvc;
 import myvertx.turtest.svc.CaptchaSvc;
@@ -42,7 +43,10 @@ public class CaptchaSvcImpl implements CaptchaSvc {
     private final ImageCaptchaValidator imageCaptchaValidator = new BasicCaptchaTrackValidator();
 
     @Inject
-    CaptchaRedisSvc                     captchaRedisSvc;
+    private MainProperties              mainProperties;
+
+    @Inject
+    private CaptchaRedisSvc             captchaRedisSvc;
 
     public CaptchaSvcImpl() {
         final ImageCaptchaResourceManager imageCaptchaResourceManager = new DefaultImageCaptchaResourceManager();
@@ -73,6 +77,15 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         final ResourceStore resourceStore = imageCaptchaResourceManager.getResourceStore();
         // 添加自定义背景图片
         resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/01.png"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/02.jpg"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/03.png"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/04.png"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/05.jpg"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/06.jpg"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/07.png"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/08.png"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/09.png"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/10.png"));
     }
 
     /**
@@ -96,15 +109,21 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         // 生成缓存的key
         final String              captchaId        = NanoIdUtils.randomNanoId();
 
+        final CaptchaGenRa        captchaGenRa     = CaptchaGenRa.builder()
+                .id(captchaId)
+                .backgroundImage(imageCaptchaInfo.getBackgroundImage())
+                .sliderImage(imageCaptchaInfo.getSliderImage())
+                .build();
+        final Vro                 vro              = Vro.success("获取并生成验证码成功", captchaGenRa);
+
+        if (mainProperties.getIsMock()) {
+            return Future.succeededFuture(vro);
+        }
+
         return this.captchaRedisSvc.setCaptcha(new CaptchaRedisSetTo(captchaId, map))
                 .compose(res -> {
                     log.debug("redis.getCaptcha result: {}", res);
-                    return Future.succeededFuture(
-                            Vro.success("获取并生成验证码成功", CaptchaGenRa.builder()
-                                    .id(captchaId)
-                                    .backgroundImage(imageCaptchaInfo.getBackgroundImage())
-                                    .sliderImage(imageCaptchaInfo.getSliderImage())
-                                    .build()));
+                    return Future.succeededFuture(vro);
                 })
                 .recover(err -> Future.succeededFuture(
                         Vro.fail("获取并生成验证码失败", err.getMessage())));
@@ -121,6 +140,10 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         if (to.getTrackList() == null || to.getTrackList().isEmpty()) {
             final String msg = "校验验证码参数错误";
             return Future.succeededFuture(Vro.illegalArgument(msg));
+        }
+
+        if (mainProperties.getIsMock()) {
+            return Future.succeededFuture(Vro.success("验证成功"));
         }
 
         return this.captchaRedisSvc.getCaptcha(to.getCaptchaId())
