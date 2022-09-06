@@ -57,11 +57,28 @@ public class CaptchaVerifyTo {
      * 滑动结束时间.
      */
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "GMT+8")
-    private Date        entSlidingTime;
+    private Date        endSlidingTime;
     /**
      * 滑动的轨迹.
      */
     private List<Track> trackList;
+    /** 扩展数据，用户传输加密数据等. */
+    private Object      data;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Track {
+        /** x. */
+        private Integer x;
+        /** y. */
+        private Integer y;
+        /** 时间. */
+        private Integer t;
+        /** 类型. */
+        private String  type;
+    }
 
     @SneakyThrows
     public CaptchaVerifyTo(final JsonObject jsonObject) {
@@ -74,13 +91,14 @@ public class CaptchaVerifyTo {
         sliderImageWidth  = jsonObject.getInteger("sliderImageWidth");
         sliderImageHeight = jsonObject.getInteger("sliderImageHeight");
         startSlidingTime  = sdf.parse(jsonObject.getString("startSlidingTime"));
-        entSlidingTime    = sdf.parse(jsonObject.getString("entSlidingTime"));
+        endSlidingTime    = sdf.parse(jsonObject.getString("endSlidingTime"));
         trackList         = jsonObject.getJsonArray("trackList").stream().map(item -> {
                               JsonObject jo = (JsonObject) item;
                               return Track.builder()
                                       .x(jo.getInteger("x"))
                                       .y(jo.getInteger("y"))
                                       .t(jo.getInteger("t"))
+                                      .type(jo.getString("type"))
                                       .build();
                           })
                 .collect(Collectors.toList());
@@ -88,16 +106,6 @@ public class CaptchaVerifyTo {
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class Track {
-        private Integer x;
-        private Integer y;
-        private Integer t;
     }
 
 }
