@@ -51,12 +51,12 @@ public class CaptchaVerifyTo {
     /**
      * 滑动开始时间.
      */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS", timezone = "GMT+8")
     private Date        startSlidingTime;
     /**
      * 滑动结束时间.
      */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS", timezone = "GMT+8")
     private Date        endSlidingTime;
     /**
      * 滑动的轨迹.
@@ -83,7 +83,7 @@ public class CaptchaVerifyTo {
     @SneakyThrows
     public CaptchaVerifyTo(final JsonObject jsonObject) {
         log.debug("CaptchaVerifyTo JsonObject constructor: {}", jsonObject);
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
         captchaId         = jsonObject.getString("captchaId");
         bgImageWidth      = jsonObject.getInteger("bgImageWidth");

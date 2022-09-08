@@ -6,7 +6,6 @@
 	"web": {
 		"config": {
 			"isLogging": true,
-			"isCors": true,
 			"server": {
 				"port": 9000,
 				"logActivity": true

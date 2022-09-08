@@ -78,14 +78,8 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         // 添加自定义背景图片
         resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/01.png"));
         resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/02.jpg"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/03.png"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/04.png"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/05.jpg"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/06.jpg"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/07.png"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/08.png"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/09.png"));
-        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/10.png"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/03.jpg"));
+        resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/04.jpg"));
     }
 
     /**
