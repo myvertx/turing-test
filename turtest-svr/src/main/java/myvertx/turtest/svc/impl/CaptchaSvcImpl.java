@@ -137,14 +137,16 @@ public class CaptchaSvcImpl implements CaptchaSvc {
         }
 
         if (mainProperties.getIsMock()) {
-            return Future.succeededFuture(Vro.success("验证成功"));
+            return Future.succeededFuture(Vro.success("通过验证"));
         }
 
         return this.captchaRedisSvc.getCaptcha(to.getCaptchaId())
                 .compose(ra -> {
                     if (ra == null) {
-                        return Future.succeededFuture(Vro.warn("验证失败"));
+                        return Future.succeededFuture(Vro.warn("验证失败", "查找不到验证码ID: " + to.getCaptchaId()));
                     }
+
+                    log.debug("获取到缓存中的验证码信息: {}", ra);
 
                     final Map<String, Object> map = ra.getMap();
 
@@ -153,7 +155,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                     // - map 为生成验证码时缓存的map数据
                     final ImageCaptchaTrack imageCaptchaTrack = MapStructRegister.INSTANCE.toImageCaptchaTrack(to);
                     final boolean   check             = imageCaptchaValidator.valid(imageCaptchaTrack, map);
-                    return Future.succeededFuture(check ? Vro.success("验证成功") : Vro.warn("验证失败"));
+                    return Future.succeededFuture(check ? Vro.success("通过验证") : Vro.warn("验证不通过"));
                 })
                 .recover(err -> Future.succeededFuture(Vro.fail("校验验证码失败", err.getMessage())));
     }
