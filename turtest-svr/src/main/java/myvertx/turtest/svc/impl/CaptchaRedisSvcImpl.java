@@ -34,10 +34,6 @@ public class CaptchaRedisSvcImpl implements CaptchaRedisSvc {
     @Named("captchaTimeout")
     private Long                captchaTimeout;
 
-    // public CaptchaRedisSvcImpl(final Long captchaTimeout) {
-    // this.captchaTimeout = captchaTimeout;
-    // }
-
     @Override
     public Future<CaptchaRedisGetRa> getCaptcha(final String captchaId) {
         log.debug("redis.getCaptcha params: captchaId-{}", captchaId);
