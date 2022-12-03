@@ -4,7 +4,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.google.inject.Singleton;
 
 import cloud.tianai.captcha.common.constant.CaptchaTypeConstant;
@@ -61,11 +61,11 @@ public class CaptchaSvcImpl implements CaptchaSvc {
      *
      * @param imageCaptchaResourceManager
      */
-    private void initCaptchaGenerator(ImageCaptchaResourceManager imageCaptchaResourceManager) {
+    private void initCaptchaGenerator(final ImageCaptchaResourceManager imageCaptchaResourceManager) {
         final ImageTransform imageTransform = new Base64ImageTransform();
-        imageCaptchaGenerator = new CacheImageCaptchaGenerator(
+        this.imageCaptchaGenerator = new CacheImageCaptchaGenerator(
                 new MultiImageCaptchaGenerator(imageCaptchaResourceManager, imageTransform), 10, 1000, 100);
-        imageCaptchaGenerator.init(true);
+        this.imageCaptchaGenerator.init(true);
     }
 
     /**
@@ -73,7 +73,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
      *
      * @param imageCaptchaResourceManager
      */
-    private void loadCaptchaResource(ImageCaptchaResourceManager imageCaptchaResourceManager) {
+    private void loadCaptchaResource(final ImageCaptchaResourceManager imageCaptchaResourceManager) {
         final ResourceStore resourceStore = imageCaptchaResourceManager.getResourceStore();
         // 添加自定义背景图片
         resourceStore.addResource(CaptchaTypeConstant.ROTATE, new Resource("classpath", "img/bg/01.png"));
@@ -99,9 +99,9 @@ public class CaptchaSvcImpl implements CaptchaSvc {
          */
         final ImageCaptchaInfo    imageCaptchaInfo = this.imageCaptchaGenerator.generateCaptchaImage(CaptchaTypeConstant.ROTATE);
         // 这个map数据应该存到缓存中，校验的时候需要用到该数据
-        final Map<String, Object> map              = imageCaptchaValidator.generateImageCaptchaValidData(imageCaptchaInfo);
+        final Map<String, Object> map              = this.imageCaptchaValidator.generateImageCaptchaValidData(imageCaptchaInfo);
         // 生成缓存的key
-        final String              captchaId        = NanoIdUtils.randomNanoId();
+        final String              captchaId        = UlidCreator.getUlid().toLowerCase();
 
         final CaptchaGenRa        captchaGenRa     = CaptchaGenRa.builder()
                 .id(captchaId)
@@ -110,7 +110,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                 .build();
         final Vro                 vro              = Vro.success("获取并生成验证码成功", captchaGenRa);
 
-        if (mainProperties.getIsMock()) {
+        if (this.mainProperties.getIsMock()) {
             return Future.succeededFuture(vro);
         }
 
@@ -136,7 +136,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
             return Future.succeededFuture(Vro.illegalArgument(msg));
         }
 
-        if (mainProperties.getIsMock()) {
+        if (this.mainProperties.getIsMock()) {
             return Future.succeededFuture(Vro.success("通过验证"));
         }
 
@@ -154,7 +154,7 @@ public class CaptchaSvcImpl implements CaptchaSvc {
                     // - imageCaptchaTrack为前端传来的滑动轨迹数据
                     // - map 为生成验证码时缓存的map数据
                     final ImageCaptchaTrack imageCaptchaTrack = MapStructRegister.INSTANCE.toImageCaptchaTrack(to);
-                    final boolean   check             = imageCaptchaValidator.valid(imageCaptchaTrack, map);
+                    final boolean   check             = this.imageCaptchaValidator.valid(imageCaptchaTrack, map);
                     return Future.succeededFuture(check ? Vro.success("通过验证") : Vro.warn("验证不通过"));
                 })
                 .recover(err -> Future.succeededFuture(Vro.fail("校验验证码失败", err.getMessage())));
